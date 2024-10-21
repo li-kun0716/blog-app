@@ -12,7 +12,7 @@ export default async function Page() {
   return (
     <div className="container">
       <h1>
-        <code lang="js">console.log("Hello World")</code>
+        <code lang="js"></code>
       </h1>
     </div>
   );

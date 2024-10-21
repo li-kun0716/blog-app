@@ -1,21 +1,8 @@
 "use client";
-import { Masonry } from "react-masonry-component2";
-import { Image } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 import React from "react";
 import { throttle } from "lodash";
-import { useTouchBottom } from "../../_hook/useTouchBottom";
 
-const randomImage = () => {
-  const width = Math.floor(Math.random() * 500) + 200;
-  const height = Math.floor(Math.random() * 500) + 300;
-  const url = `https://picsum.photos/${width}/${height}?time=${Date.now()}`;
-  return {
-    url,
-    width,
-    height,
-  };
-};
 type WaterFullItemProps = {
   children: React.ReactNode;
   onLoadCallback?: ({ index, ratio }: { index: number; ratio: number }) => void;
@@ -37,7 +24,7 @@ export const WaterFullItem = ({ children, onLoadCallback, ...props }: WaterFullI
   );
 };
 
-type WaterFull = {
+type WaterFullProps = {
   children: React.ReactNode;
   gap?: Array<number>;
   pointsBreak?: {
@@ -45,12 +32,12 @@ type WaterFull = {
   };
 };
 
-export const WaterFull = ({ children, ...props }: WaterFull) => {
+export const WaterFull = ({ children, ...props }: WaterFullProps) => {
   const pointsBreak = props.pointsBreak ?? { "320": 1, "640": 2, "1024": 4, "1920": 6 };
-  const [width, setWidth] = useState(window.innerWidth);
+  const [width, setWidth] = useState(0);
 
   const waterFull = useRef<HTMLDivElement>(null);
-  const [ratios, setRatios] = useState<number[]>(new Array(children?.length ?? 0));
+  const [ratios, setRatios] = useState<number[]>(new Array((children as Array<React.ReactNode>)?.length ?? 0));
   const [containerWidth, setContainerWidth] = useState(0);
 
   function computeCol() {
@@ -70,11 +57,12 @@ export const WaterFull = ({ children, ...props }: WaterFull) => {
 
   useEffect(() => {
     window.addEventListener("resize", handleResize);
+    setWidth(window.innerWidth);
     setContainerWidth(waterFull.current?.offsetWidth ?? 0);
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, []);
+  }, [handleResize]);
   const col = computeCol();
   const gap = props.gap ?? [16, 16];
 
@@ -95,8 +83,8 @@ export const WaterFull = ({ children, ...props }: WaterFull) => {
         let itemHeight = 0,
           minColIndex = 0,
           preMinColHeight = 0,
-          opacity = 0,
-          itemWidth = (containerWidth - col * gap[0]) / col;
+          opacity = 0;
+        const itemWidth = (containerWidth - col * gap[0]) / col;
         if (ratios[index] === undefined) isBreak = true;
         if (!isBreak) {
           itemHeight = itemWidth / ratios[index];
@@ -105,7 +93,7 @@ export const WaterFull = ({ children, ...props }: WaterFull) => {
           colMinHights[minColIndex] += itemHeight + gap[1];
           opacity = 1;
         }
-        return React.cloneElement(child as React.ReactElement<any>, {
+        return React.cloneElement(child as React.ReactElement, {
           "data-index": index,
           style: {
             ...child.props.style,

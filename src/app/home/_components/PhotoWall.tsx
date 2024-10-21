@@ -17,7 +17,7 @@ const photos = () => new Array(30).fill(null).map(() => randomImage());
 export default function PhotoWall() {
   const [data, setData] = useState(photos());
 
-  const scrollTop = useTouchBottom({
+  useTouchBottom({
     callback: touchBottomHandle,
   });
 
@@ -32,7 +32,13 @@ export default function PhotoWall() {
       {data.map((item, index) => {
         return (
           <WaterFullItem key={index}>
-            <Image wrapperStyle={{ height: "100%" }} style={{ height: "100%", width: "100%" }} src={item.url} fallback="/image/Atom.PNG" />
+            <Image
+              alt="photo"
+              wrapperStyle={{ height: "100%" }}
+              style={{ height: "100%", width: "100%" }}
+              src={item.url}
+              fallback="/image/Atom.PNG"
+            />
           </WaterFullItem>
         );
       })}
