@@ -3,7 +3,7 @@ import React from "react";
 import { LaptopOutlined, NotificationOutlined, UserOutlined } from "@ant-design/icons";
 import type { MenuProps } from "antd";
 import { Avatar, Breadcrumb, Layout, Menu, Image } from "antd";
-import { WaterFull, WaterFullItem } from "./WaterFull";
+import PhotoWall from "./_components/PhotoWall";
 
 const { Header, Content, Sider } = Layout;
 
@@ -30,18 +30,6 @@ const items2: MenuProps["items"] = [UserOutlined, LaptopOutlined, NotificationOu
   };
 });
 
-const randomImage = () => {
-  const width = Math.floor(Math.random() * 500) + 200;
-  const height = Math.floor(Math.random() * 500) + 300;
-  const url = `https://picsum.photos/${width}/${height}?time=${Date.now()}`;
-  return {
-    url,
-    width,
-    height,
-  };
-};
-const data = new Array(30).fill(null).map(() => randomImage());
-
 const Home: React.FC = () => {
   return (
     <Layout className="!min-h-screen">
@@ -52,15 +40,7 @@ const Home: React.FC = () => {
       <Layout>
         <Layout className="p-4">
           <Content className="bg-white">
-            <WaterFull>
-              {data.map((item, index) => {
-                return (
-                  <WaterFullItem key={index}>
-                    <Image className="size-full" src={item.url} fallback="/image/Atom.PNG" />
-                  </WaterFullItem>
-                );
-              })}
-            </WaterFull>
+            <PhotoWall />
           </Content>
         </Layout>
       </Layout>

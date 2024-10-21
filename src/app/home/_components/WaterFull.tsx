@@ -1,8 +1,10 @@
 "use client";
 import { Masonry } from "react-masonry-component2";
 import { Image } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import React from "react";
+import { throttle } from "lodash";
+import { useTouchBottom } from "../../_hook/useTouchBottom";
 
 const randomImage = () => {
   const width = Math.floor(Math.random() * 500) + 200;
@@ -25,16 +27,11 @@ export const WaterFullItem = ({ children, onLoadCallback, ...props }: WaterFullI
     onLoadCallback &&
       onLoadCallback({
         index: Number(e.currentTarget.dataset.index),
-        ratio: fullItem.current ? fullItem.current?.offsetWidth / fullItem.current?.offsetHeight : 1,
+        ratio: (e.target as HTMLImageElement).naturalWidth / (e.target as HTMLImageElement).naturalHeight,
       });
-    console.log(
-      "onLoadHandler",
-      fullItem.current ? fullItem.current?.offsetWidth / fullItem.current?.offsetHeight : 1,
-      (e.target as HTMLImageElement).naturalWidth / (e.target as HTMLImageElement).naturalHeight
-    );
   };
   return (
-    <div className="water-full-item" {...props} onLoad={onLoadHandler} ref={fullItem}>
+    <div className="water-full-item transition-all" {...props} onLoad={onLoadHandler} ref={fullItem}>
       {children}
     </div>
   );
@@ -49,7 +46,7 @@ type WaterFull = {
 };
 
 export const WaterFull = ({ children, ...props }: WaterFull) => {
-  const pointsBreak = props.pointsBreak ?? { "640": 2, "1024": 4 };
+  const pointsBreak = props.pointsBreak ?? { "320": 1, "640": 2, "1024": 4, "1920": 6 };
   const [width, setWidth] = useState(window.innerWidth);
 
   const waterFull = useRef<HTMLDivElement>(null);
@@ -57,11 +54,20 @@ export const WaterFull = ({ children, ...props }: WaterFull) => {
   const [containerWidth, setContainerWidth] = useState(0);
 
   function computeCol() {
-    const breakPoint = Object.keys(pointsBreak).find((key) => width <= Number(key));
-    return breakPoint ? pointsBreak[breakPoint] : 1;
+    const breakPoint = Object.keys(pointsBreak)
+      .map((key) => Number(key))
+      .sort((a, b) => a - b)
+      .find((key) => width <= key);
+    return breakPoint ? pointsBreak[breakPoint.toString()] : 6;
   }
 
-  const handleResize = () => setWidth(window.innerWidth);
+  const handleResize = useMemo(() => {
+    return throttle(() => {
+      setWidth(window.innerWidth);
+      setContainerWidth(waterFull.current?.offsetWidth ?? 0);
+    }, 300);
+  }, []);
+
   useEffect(() => {
     window.addEventListener("resize", handleResize);
     setContainerWidth(waterFull.current?.offsetWidth ?? 0);
@@ -88,34 +94,28 @@ export const WaterFull = ({ children, ...props }: WaterFull) => {
       if (React.isValidElement(child)) {
         let itemHeight = 0,
           minColIndex = 0,
-          minColHeight = 0,
-          itemWidth = containerWidth / col;
+          preMinColHeight = 0,
+          opacity = 0,
+          itemWidth = (containerWidth - col * gap[0]) / col;
         if (ratios[index] === undefined) isBreak = true;
         if (!isBreak) {
           itemHeight = itemWidth / ratios[index];
           minColIndex = findIndexMinHight();
-          minColHeight = colMinHights[minColIndex];
-          colMinHights[minColIndex] += itemHeight;
+          preMinColHeight = colMinHights[minColIndex];
+          colMinHights[minColIndex] += itemHeight + gap[1];
+          opacity = 1;
         }
-        console.log(
-          ratios[index],
-          "itemWidth",
-          itemWidth,
-          "itemHeight",
-          itemHeight,
-          "minColIndex",
-          minColIndex,
-          "minColHeight",
-          minColHeight
-        );
         return React.cloneElement(child as React.ReactElement<any>, {
           "data-index": index,
           style: {
             ...child.props.style,
-            transform: `translate(${minColIndex * itemWidth}px, ${minColHeight}px)`,
-            opacity: ratios[index] ? 1 : 0,
+            transform: `translate(${minColIndex * itemWidth + minColIndex * gap[0]}px, ${preMinColHeight}px)`,
+            opacity: opacity,
             position: "absolute",
             width: `${itemWidth}px`,
+            top: 0,
+            left: 0,
+            height: itemHeight != 0 ? `${itemHeight}px` : "",
           } as React.CSSProperties,
           onLoadCallback: onLoadCallback,
         });
@@ -127,7 +127,7 @@ export const WaterFull = ({ children, ...props }: WaterFull) => {
   };
 
   return (
-    <div className="water-full-container" {...props} ref={waterFull}>
+    <div className="water-full-container relative" {...props} ref={waterFull}>
       {layout()}
     </div>
   );
