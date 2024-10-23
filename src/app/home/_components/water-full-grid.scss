@@ -1,0 +1,6 @@
+.water-full-grid-container {
+  display: grid;
+  grid-template-columns: repeat(var(--col), 1fr);
+  grid-auto-rows: var(--span);
+  grid-auto-flow: dense;
+}

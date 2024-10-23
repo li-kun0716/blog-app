@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { WaterFull, WaterFullItem } from "./WaterFull";
 import { Image } from "antd";
 import { useTouchBottom } from "@/app/_hook/useTouchBottom";
+import WaterFullGrid from "./WaterFullGrid";
 const randomImage = () => {
   const width = Math.floor(Math.random() * 500) + 200;
   const height = Math.floor(Math.random() * 500) + 300;
@@ -28,20 +29,20 @@ export default function PhotoWall() {
   }
 
   return (
-    <WaterFull gap={[10, 10]}>
+    <WaterFullGrid gap={[10, 10]}>
       {data.map((item, index) => {
         return (
-          <WaterFullItem key={index}>
+          <WaterFullGrid.Item key={index}>
             <Image
               alt="photo"
-              wrapperStyle={{ height: "100%" }}
+              wrapperStyle={{ height: "100%", width: "100%" }}
               style={{ height: "100%", width: "100%" }}
               src={item.url}
               fallback="/image/Atom.PNG"
             />
-          </WaterFullItem>
+          </WaterFullGrid.Item>
         );
       })}
-    </WaterFull>
+    </WaterFullGrid>
   );
 }
